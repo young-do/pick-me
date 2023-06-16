@@ -196,7 +196,12 @@ export const GamePage = () => {
                 <Td>{teamName}</Td>
                 <Td>
                   {users
-                    .map((user) => `${user.name}/${user.position}`)
+                    .map(
+                      (user) =>
+                        `${user.name}/${user.position}/${
+                          user.choices.findIndex((c) => c === teamName) + 1
+                        }순위`
+                    )
                     .join(", ")}
                 </Td>
                 <Td>{users.length}명</Td>
