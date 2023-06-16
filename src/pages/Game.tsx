@@ -246,7 +246,7 @@ const UserCard = ({ user, teamId, onPick, onUnpick }: UserCardProps) => {
 };
 
 const SetupBox = () => {
-  const { users, started, initByFile, start, next } = useGame();
+  const { users, started, initByFile, start, next, reset } = useGame();
   const { isOpen, onClose, onOpen } = useDisclosure();
   const notInitialized = users.length === 0;
 
@@ -256,9 +256,19 @@ const SetupBox = () => {
       initByFile(file);
     }
   };
+  const handleReset = () => {
+    confirm("정말로 초기화 하시겠습니까?") && reset();
+  };
 
   return (
     <HStack padding="8px">
+      <Button
+        isDisabled={notInitialized}
+        colorScheme={"red"}
+        onClick={handleReset}
+      >
+        초기화
+      </Button>
       <Input type="file" accept=".tsv" onChange={handleFile} />
       <Button isDisabled={notInitialized} onClick={onOpen}>
         새 유저 추가
