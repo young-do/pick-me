@@ -34,6 +34,7 @@ export const GamePage = () => {
     positions,
     teams,
     maxRound,
+    started,
     selectedPosition,
     selectedJoinedTeam,
     selectedRound,
@@ -95,6 +96,7 @@ export const GamePage = () => {
             <HStack>
               <Select
                 value={selectedPosition}
+                isDisabled={!started}
                 onChange={(e) => setSelectedPosition(e.target.value)}
               >
                 <option value={""}>모든 포지션</option>
@@ -106,6 +108,7 @@ export const GamePage = () => {
               </Select>
               <Select
                 value={selectedJoinedTeam}
+                isDisabled={!started}
                 onChange={(e) => setSelectedJoinedTeam(e.target.value)}
               >
                 <option value={""}>모든 사람</option>
@@ -114,6 +117,7 @@ export const GamePage = () => {
               </Select>
               <Select
                 value={selectedRound}
+                isDisabled={!started}
                 onChange={(e) => setSelectedRound(+e.target.value)}
               >
                 <option value={-1}>모든 지망</option>
@@ -145,6 +149,7 @@ export const GamePage = () => {
           <Box width={"320px"} padding={2}>
             <Select
               value={selectedTeamId}
+              isDisabled={!started}
               onChange={(e) => setSelectedTeamId(e.target.value)}
             >
               <option value={""}>팀 선택</option>
@@ -177,9 +182,12 @@ export const GamePage = () => {
         <Table size="sm">
           <Thead>
             <Tr>
-              <Th>팀 이름</Th>
+              <Th minW={300}>팀 이름</Th>
               <Th>멤버 이름</Th>
-              <Th>{`인원 수 (총 ${users.length}명)`}</Th>
+              <Th minW={120}>
+                인원 수<br />
+                {`(총 ${users.length}명)`}
+              </Th>
             </Tr>
           </Thead>
           <Tbody>
