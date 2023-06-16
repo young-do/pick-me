@@ -26,6 +26,7 @@ import {
   ModalFooter,
 } from "@chakra-ui/react";
 import { generateId } from "../utils/id";
+import { FlipCard } from "../components/FlipCard";
 
 // 각 라운드마다 팀이 돌아가면서 유저를 0~n명 선택할 수 있다.
 export const GamePage = () => {
@@ -225,23 +226,22 @@ const UserCard = ({ user, teamId, onPick, onUnpick }: UserCardProps) => {
   const picked = user.joined_team_id === teamId;
 
   return (
-    <VStack
-      display={"inline-block"}
-      padding={"4px 8px"}
-      border={"1px solid gray"}
-      borderRadius={"4px"}
-    >
-      <Text>
-        {user.name} / {user.position}
-      </Text>
-      <Button
-        size="sm"
-        isDisabled={!teamId}
-        onClick={picked ? onUnpick : onPick}
-      >
-        {picked ? "unpick" : "pick"}
-      </Button>
-    </VStack>
+    <FlipCard
+      front={
+        <>
+          <Text fontSize="md">{user.name}</Text>
+          <Text fontSize="sm">{user.position}</Text>
+          <Button
+            size="sm"
+            isDisabled={!teamId}
+            onClick={picked ? onUnpick : onPick}
+          >
+            {picked ? "unpick" : "pick"}
+          </Button>
+        </>
+      }
+      back={<div>뒷면입니다 😘</div>}
+    />
   );
 };
 
