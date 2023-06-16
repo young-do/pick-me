@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Team, User, useGame } from "../store/useGame";
 import {
   Box,
@@ -16,7 +16,16 @@ import {
   Heading,
   Input,
   Flex,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalHeader,
+  ModalOverlay,
+  useDisclosure,
+  ModalFooter,
 } from "@chakra-ui/react";
+import { generateId } from "../utils/id";
 
 // 각 라운드마다 팀이 돌아가면서 유저를 0~n명 선택할 수 있다.
 export const GamePage = () => {
@@ -225,6 +234,7 @@ const UserCard = ({ user, teamId, onPick, onUnpick }: UserCardProps) => {
 
 const SetupBox = () => {
   const { users, started, initByFile, start, next } = useGame();
+  const { isOpen, onClose, onOpen } = useDisclosure();
   const notInitialized = users.length === 0;
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -237,10 +247,107 @@ const SetupBox = () => {
   return (
     <HStack padding="8px">
       <Input type="file" accept=".tsv" onChange={handleFile} />
-      <Button isDisabled={notInitialized}>새 유저 추가</Button>
+      <Button isDisabled={notInitialized} onClick={onOpen}>
+        새 유저 추가
+      </Button>
       <Button isDisabled={notInitialized} onClick={started ? next : start}>
         {started ? "다음" : "시작하기"}
       </Button>
+      <AddUserModal isOpen={isOpen} onClose={onClose} />
     </HStack>
+  );
+};
+
+type AddUserModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+};
+
+const defaultInputs: Omit<User, "id"> = {
+  name: "",
+  position: "",
+  choices: [],
+  joined_team_id: null,
+};
+
+const AddUserModal = ({ isOpen, onClose }: AddUserModalProps) => {
+  const { positions, teams, addUser } = useGame();
+  const [inputs, setInputs] = useState<Omit<User, "id">>(defaultInputs);
+  const { name, position, choices, joined_team_id } = inputs;
+  const canBeAdded = name !== "" && position !== "";
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setInputs((prev) => ({ ...prev, [name]: value }));
+  };
+  const add = () => {
+    if (!canBeAdded) return;
+
+    const user: User = {
+      id: generateId(),
+      name,
+      position,
+      choices,
+      joined_team_id,
+    };
+    addUser(user);
+    setInputs(defaultInputs);
+    onClose();
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>새 유저 추가</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <VStack alignItems={"flex-start"}>
+            <Input
+              value={name}
+              name="name"
+              onChange={handleChange}
+              autoComplete="off"
+              placeholder="이름 입력"
+            />
+
+            <Select
+              value={position ?? ""}
+              name="position"
+              onChange={handleChange}
+            >
+              <option value={""}>포지션 선택</option>
+              {positions.map((position) => (
+                <option key={position} value={position}>
+                  {position}
+                </option>
+              ))}
+            </Select>
+
+            <Select
+              value={joined_team_id ?? ""}
+              name="joined_team_id"
+              onChange={handleChange}
+            >
+              <option value={""}>팀 선택</option>
+              {teams.map((team) => (
+                <option key={team.id} value={team.id}>
+                  {team.name}
+                </option>
+              ))}
+            </Select>
+
+            <Text textAlign={"left"}>* 희망하는 팀 입력은 불가합니다.</Text>
+          </VStack>
+        </ModalBody>
+        <ModalFooter>
+          <Button isDisabled={!canBeAdded} colorScheme="blue" onClick={add}>
+            추가하기
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
   );
 };

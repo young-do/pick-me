@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { generateId } from "../utils/id";
 
 export type User = {
   id: string;
@@ -22,8 +23,8 @@ export type UseGame = {
   selectedRound: number;
   selectedTeamId: Team["id"];
   initByFile: (file: File) => void;
-  setUsers: (users: User[]) => void;
-  setTeams: (teams: Team[]) => void;
+  addUser: (user: User) => void;
+  removeUser: (userId: User["id"]) => void;
   setSelectedTeamId: (teamId: Team["id"]) => void;
   setSelectedPosition: (position: User["position"]) => void;
   setSelectedJoinedTeam: (joinedTeam: string) => void;
@@ -56,19 +57,13 @@ export const useGame = create<UseGame>((set, get) => ({
       const trim = (str: string) => {
         return str.trim().replace(/\s+/g, " ").replace(/"/g, "");
       };
-      const sortUser = (a: User, b: User) => {
-        if (a.position === b.position) {
-          return a.name.localeCompare(b.name);
-        }
-        return a.position.localeCompare(b.position);
-      };
 
       content.forEach((line) => {
         const [name, position, ...choices] = line.split("\t");
         const trimmedChoices = choices.map(trim);
 
         users.push({
-          id: Math.random().toString(36).substr(2, 9),
+          id: generateId(),
           name,
           position: trim(position),
           choices: trimmedChoices,
@@ -99,18 +94,14 @@ export const useGame = create<UseGame>((set, get) => ({
     };
     reader.readAsText(file);
   },
-  setUsers: (users: User[]) => {
-    const positions = [...new Set(users.map((user) => user.position))].sort(
-      (a, b) => a.localeCompare(b)
-    );
-    const maxRound = users
-      .map((user) => user.choices.length)
-      .reduce((a, b) => Math.max(a, b), 0);
-
-    set({ users, positions, maxRound });
+  addUser: (user: User) => {
+    const { users } = get();
+    users.push(user);
+    set({ users: users.slice() });
   },
-  setTeams: (teams: Team[]) => {
-    set({ teams });
+  removeUser: (userId: User["id"]) => {
+    const { users } = get();
+    set({ users: users.filter((user) => user.id !== userId) });
   },
   setSelectedTeamId: (teamId: Team["id"]) => {
     set({ selectedTeamId: teamId });
@@ -173,3 +164,10 @@ export const useGame = create<UseGame>((set, get) => ({
 }));
 
 useGame.subscribe(console.log);
+
+const sortUser = (a: User, b: User) => {
+  if (a.position === b.position) {
+    return a.name.localeCompare(b.name);
+  }
+  return a.position.localeCompare(b.position);
+};
