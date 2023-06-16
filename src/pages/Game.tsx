@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Team, User, useGame } from "../store/useGame";
 import {
   Box,
@@ -15,6 +15,7 @@ import {
   Td,
   Heading,
   Input,
+  Flex,
 } from "@chakra-ui/react";
 
 // 각 라운드마다 팀이 돌아가면서 유저를 0~n명 선택할 수 있다.
@@ -77,88 +78,90 @@ export const GamePage = () => {
 
   return (
     <>
-      <SetupBox />
+      <Flex flexDirection={"column"} width={"100vw"} minHeight={"100vh"}>
+        <SetupBox />
 
-      <HStack width={"100vw"} minHeight={"100vh"} alignItems={"flex-start"}>
-        <Box flex="1" padding={2}>
-          <HStack>
+        <HStack flex="1" alignItems={"flex-start"}>
+          <Box flex="1" padding={2}>
+            <HStack>
+              <Select
+                value={selectedPosition}
+                onChange={(e) => setSelectedPosition(e.target.value)}
+              >
+                <option value={""}>모든 포지션</option>
+                {positions.map((position) => (
+                  <option key={position} value={position}>
+                    {position}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                value={selectedJoinedTeam}
+                onChange={(e) => setSelectedJoinedTeam(e.target.value)}
+              >
+                <option value={""}>모든 사람</option>
+                <option value={"selected"}>선택된 사람</option>
+                <option value={"not-selected"}>선택되지 않은 사람</option>
+              </Select>
+              <Select
+                value={selectedRound}
+                onChange={(e) => setSelectedRound(+e.target.value)}
+              >
+                <option value={-1}>모든 지망</option>
+                {Array.from({ length: maxRound }).map((_, i) => (
+                  <option key={i} value={i}>
+                    {i + 1}번째 지망
+                  </option>
+                ))}
+              </Select>
+            </HStack>
+
+            <Heading size="md" margin="16px 0">
+              유저 목록
+            </Heading>
+
+            <HStack flexWrap={"wrap"}>
+              {filteredUsers.map((user) => (
+                <UserCard
+                  key={user.id}
+                  user={user}
+                  teamId={selectedTeamId}
+                  onPick={() => pick(user.id)}
+                  onUnpick={() => unpick(user.id)}
+                />
+              ))}
+            </HStack>
+          </Box>
+
+          <Box width={"320px"} padding={2}>
             <Select
-              value={selectedPosition}
-              onChange={(e) => setSelectedPosition(e.target.value)}
+              value={selectedTeamId}
+              onChange={(e) => setSelectedTeamId(e.target.value)}
             >
-              <option value={""}>모든 포지션</option>
-              {positions.map((position) => (
-                <option key={position} value={position}>
-                  {position}
+              <option value={""}>팀 선택</option>
+              {teams.map((team) => (
+                <option key={team.id} value={team.id}>
+                  {team.name}
                 </option>
               ))}
             </Select>
-            <Select
-              value={selectedJoinedTeam}
-              onChange={(e) => setSelectedJoinedTeam(e.target.value)}
-            >
-              <option value={""}>모든 사람</option>
-              <option value={"selected"}>선택된 사람</option>
-              <option value={"not-selected"}>선택되지 않은 사람</option>
-            </Select>
-            <Select
-              value={selectedRound}
-              onChange={(e) => setSelectedRound(+e.target.value)}
-            >
-              <option value={-1}>모든 지망</option>
-              {Array.from({ length: maxRound }).map((_, i) => (
-                <option key={i} value={i}>
-                  {i + 1}번째 지망
-                </option>
+            <Heading size="md" margin="16px 0">
+              선택한 팀원
+            </Heading>
+            <HStack flexWrap={"wrap"}>
+              {teamMembers.map((user) => (
+                <UserCard
+                  key={user.id}
+                  user={user}
+                  teamId={selectedTeamId}
+                  onPick={() => pick(user.id)}
+                  onUnpick={() => unpick(user.id)}
+                />
               ))}
-            </Select>
-          </HStack>
-
-          <Heading size="md" margin="16px 0">
-            유저 목록
-          </Heading>
-
-          <HStack flexWrap={"wrap"}>
-            {filteredUsers.map((user) => (
-              <UserCard
-                key={user.id}
-                user={user}
-                teamId={selectedTeamId}
-                onPick={() => pick(user.id)}
-                onUnpick={() => unpick(user.id)}
-              />
-            ))}
-          </HStack>
-        </Box>
-
-        <Box width={"300px"} padding={2}>
-          <Select
-            value={selectedTeamId}
-            onChange={(e) => setSelectedTeamId(e.target.value)}
-          >
-            <option value={""}>팀 선택</option>
-            {teams.map((team) => (
-              <option key={team.id} value={team.id}>
-                {team.name}
-              </option>
-            ))}
-          </Select>
-          <Heading size="md" margin="16px 0">
-            선택한 팀원
-          </Heading>
-          <HStack flexWrap={"wrap"}>
-            {teamMembers.map((user) => (
-              <UserCard
-                key={user.id}
-                user={user}
-                teamId={selectedTeamId}
-                onPick={() => pick(user.id)}
-                onUnpick={() => unpick(user.id)}
-              />
-            ))}
-          </HStack>
-        </Box>
-      </HStack>
+            </HStack>
+          </Box>
+        </HStack>
+      </Flex>
 
       <Box padding={2}>
         <Heading size="md">팀 빌딩 현황</Heading>
@@ -221,49 +224,13 @@ const UserCard = ({ user, teamId, onPick, onUnpick }: UserCardProps) => {
 };
 
 const SetupBox = () => {
-  const {
-    users,
-    teams,
-    selectedTeamId,
-    selectedRound,
-    maxRound,
-    initByFile,
-    setSelectedJoinedTeam,
-    setSelectedRound,
-    setSelectedTeamId,
-  } = useGame();
-  const [started, setStarted] = useState(false);
+  const { users, started, initByFile, start, next } = useGame();
   const notInitialized = users.length === 0;
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const file = e.target.files[0];
       initByFile(file);
-    }
-  };
-  const start = () => {
-    setSelectedTeamId(teams[0].id);
-    setSelectedRound(0);
-    setSelectedJoinedTeam("not-selected");
-
-    setStarted(true);
-  };
-  const next = () => {
-    const currIndex = teams.findIndex((team) => team.id === selectedTeamId);
-    const nextIndex = currIndex + 1;
-    if (nextIndex >= teams.length) {
-      const nextRound = selectedRound + 1;
-      if (nextRound === maxRound) {
-        // 끝
-        alert("끝");
-      } else {
-        // 다음 라운드
-        setSelectedTeamId(teams[0].id);
-        setSelectedRound(nextRound);
-      }
-    } else {
-      // 다음 팀으로
-      setSelectedTeamId(teams[nextIndex].id);
     }
   };
 

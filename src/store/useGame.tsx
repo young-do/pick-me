@@ -16,6 +16,7 @@ export type UseGame = {
   positions: User["position"][];
   maxRound: number;
   teams: Team[];
+  started: boolean;
   selectedPosition: User["position"];
   selectedJoinedTeam: string;
   selectedRound: number;
@@ -27,6 +28,8 @@ export type UseGame = {
   setSelectedPosition: (position: User["position"]) => void;
   setSelectedJoinedTeam: (joinedTeam: string) => void;
   setSelectedRound: (round: number) => void;
+  start: () => void;
+  next: () => void;
   pick: (userId: User["id"]) => void;
   unpick: (userId: User["id"]) => void;
 };
@@ -36,6 +39,7 @@ export const useGame = create<UseGame>((set, get) => ({
   positions: [],
   maxRound: 0,
   teams: [],
+  started: false,
   selectedTeamId: "",
   selectedPosition: "",
   selectedJoinedTeam: "",
@@ -119,6 +123,34 @@ export const useGame = create<UseGame>((set, get) => ({
   },
   setSelectedRound: (round: number) => {
     set({ selectedRound: round });
+  },
+  start: () => {
+    set({
+      started: true,
+      selectedTeamId: get().teams[0].id,
+      selectedRound: 0,
+      selectedJoinedTeam: "not-selected",
+    });
+  },
+  next: () => {
+    const { teams, selectedTeamId, selectedRound, maxRound } = get();
+    const currIndex = teams.findIndex((team) => team.id === selectedTeamId);
+    const nextIndex = currIndex + 1;
+
+    if (nextIndex >= teams.length) {
+      const nextRound = selectedRound + 1;
+
+      if (nextRound === maxRound) {
+        // 끝
+        alert("끝");
+      } else {
+        // 다음 라운드
+        set({ selectedRound: nextRound, selectedTeamId: teams[0].id });
+      }
+    } else {
+      // 다음 팀으로
+      set({ selectedTeamId: teams[nextIndex].id });
+    }
   },
   pick: (userId: User["id"]) => {
     const { users, selectedTeamId } = get();
