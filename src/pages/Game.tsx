@@ -240,7 +240,14 @@ const UserCard = ({ user, teamId, onPick, onUnpick }: UserCardProps) => {
           </Button>
         </>
       }
-      back={<div>뒷면입니다 😘</div>}
+      back={
+        <Text fontSize="sm">
+          {user.choices.map((c, i) => {
+            const [pmName] = c.split(" - ");
+            return <div>{`${i + 1}순위 - ${pmName}팀`}</div>;
+          })}
+        </Text>
+      }
     />
   );
 };
